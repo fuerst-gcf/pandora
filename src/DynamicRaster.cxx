@@ -166,6 +166,15 @@ void DynamicRaster::setMaxValue( const int & maxValue )
 	_maxValue = maxValue;
 }
 
+void DynamicRaster::setMaxValues( const int & maxValue )
+{
+	_maxValue = maxValue;
+	for (size_t i = 0; i < _values.size(); i++  )
+		for (size_t j = 0; j < _values[i].size(); j++ )
+			_maxValues[i][j] = maxValue;
+}
+
+
 void DynamicRaster::setMinValue( const int & minValue )
 {
 	_minValue = minValue;

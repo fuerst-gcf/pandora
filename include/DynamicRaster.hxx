@@ -63,6 +63,8 @@ public:
 	void setInitValues( int minValue, int maxValue, int defaultValue );
 	//! Sets new value for attribute maxValue.
 	void setMaxValue( const int & maxValue);
+	//! Sets new value for attribute maxValue and also set the maximum value in each cell
+	void setMaxValues( const int & maxValue);
 	//! Sets new value for attribute minValue.
 	void setMinValue( const int & minValue);
 	void resize( const Size<int> & size );
