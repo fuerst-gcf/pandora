@@ -34,11 +34,9 @@ if env['debug'] == True:
     if env['edebug']==True:
         env.Append(CCFLAGS = '-DPANDORAEDEBUG')
     libraryName = 'pandorad.so'
-    pythonLibraryName = 'pyPandorad.so'
 else:
     env.Append(CCFLAGS = '-Ofast')
     libraryName = 'pandora.so'
-    pythonLibraryName = 'pyPandora.so'
 
 coreFiles = [str(f) for f in Glob('src/*.cxx')]
 analysisFiles = [str(f) for f in Glob('src/analysis/*.cxx')]
@@ -62,46 +60,10 @@ elif platform.system()=='Darwin':
     env.Append(LIBPATH = '/usr/local/lib')
 
 
-envPython = env.Clone()
-
-if platform.system()=='Linux':
-    envPython.Append(LINKFLAGS = '-Wl,--export-dynamic,-no-undefined'.split())
-
-if env['debug'] == False:
-    envPython.VariantDir('build_py', '.')
-    srcPyFiles = ['build_py/' + src for src in srcFiles]
-else:    
-    envPython.VariantDir('buildDebug_py', '.')
-    srcPyFiles = ['buildDebug_py/' + src for src in srcFiles]
-
-srcPyFiles += [str(f) for f in Glob('src/pyPandora/*.cxx')]
-srcPyFiles += [str(f) for f in Glob('utils/*.cxx')]
-
-conf = Configure(envPython)
-
-if(env['python2']==False):
-    envPython.ParseConfig("python3-config --includes --ldflags")
-    if conf.CheckLib('boost_python-py33'):
-        envPython.Append(LIBS = 'boost_python-py33')
-    elif conf.CheckLib('boost_python-py34'):
-        envPython.Append(LIBS = 'boost_python-py34')
-    else:
-        envPython.Append(LIBS = 'boost_python3') 
-else:
-    envPython.ParseConfig("python-config --includes --ldflags")
-    if conf.CheckLib('boost_python-py27'):
-        envPython.Append(LIBS = 'boost_python-py27')
-    else:
-        envPython.Append(LIBS = 'boost_python') 
-
-envPython = conf.Finish()
-
 # versioned lib do not create correct links with .so in osx
 if platform.system()=='Linux':
-    sharedPyLib = envPython.SharedLibrary('lib/'+pythonLibraryName,  srcPyFiles, SHLIBVERSION=version)
     sharedLib = env.SharedLibrary('lib/'+libraryName, srcBaseFiles, SHLIBVERSION=version)
 elif platform.system()=='Darwin':
-    sharedPyLib = envPython.SharedLibrary('lib/'+pythonLibraryName,  srcPyFiles)
     sharedLib = env.SharedLibrary('lib/'+libraryName, srcBaseFiles)
 
 
@@ -111,14 +73,11 @@ installHeadersDir = env['installDir'] + '/include/'
 installAnalysisHeadersDir = installHeadersDir+'analysis'
 
 installedLib = ""
-installedPyLib = ""
 
 if(LooseVersion(SCons.__version__) < LooseVersion("2.3.0")):
-	installedLib = env.Install(installLibDir, sharedLib, SHLIBVERSION=version)
-	installedPyLib = env.Install(installLibDir, sharedPyLib, SHLIBVERSION=version)
+        installedLib = env.Install(installLibDir, sharedLib, SHLIBVERSION=version)
 else:
-	installedLib = env.InstallVersionedLib(installLibDir, sharedLib, SHLIBVERSION=version)
-	installedPyLib = env.InstallVersionedLib(installLibDir, sharedPyLib, SHLIBVERSION=version)
+        installedLib = env.InstallVersionedLib(installLibDir, sharedLib, SHLIBVERSION=version)
 
 
 installedHeaders = env.Install(installHeadersDir, coreHeaders)
@@ -129,13 +88,12 @@ installShare = env.Install(env['installDir'], Glob('./share'))
 installMpiStub = env.Install(env['installDir']+'/utils', Glob('./utils/*.cxx'))
 
 # cassandra
-cassandraCompilation = env.Command("bin/cassandra", "", "cd cassandra && qmake && make")
-if platform.system()=='Darwin':
-    cassandraCompilation = env.Command("bin/cassandra", "", "cd cassandra && qmake cassandra_osx.pro && make")
+#cassandraCompilation = env.Command("bin/cassandra", "", "cd cassandra && qmake && make")
+#if platform.system()=='Darwin':
+#    cassandraCompilation = env.Command("bin/cassandra", "", "cd cassandra && qmake cassandra_osx.pro && make")
 
 # final targets
 Default(sharedLib)
-Default(sharedPyLib)
-env.Alias('cassandra', cassandraCompilation)
-env.Alias('install', [cassandraCompilation, sharedLib, sharedPyLib, installedLib, installedPyLib, installedHeaders, installedAnalysisHeaders, installBin, installShare, installMpiStub])
+#env.Alias('cassandra', cassandraCompilation)
+env.Alias('install', [sharedLib, installedLib, installedHeaders, installedAnalysisHeaders, installBin, installShare, installMpiStub])
 
