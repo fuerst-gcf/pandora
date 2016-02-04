@@ -47,7 +47,7 @@ class World
 public:
 	typedef std::map< std::string, int> RasterNameMap;
 protected:		
-    std::shared_ptr<Config> _config;
+	std::shared_ptr<Config> _config;
 	//! global list of agents
 	AgentsList _agents;
 	
@@ -109,15 +109,20 @@ public:
 	//! the override of this method allows to modify rasters between step executions
 	virtual void stepRaster( const int & index);
 
+
+	const size_t rasterIndexForKey(const std::string & key) const;
 	//! returns raster identified by parameter 'key'.
 	DynamicRaster & getDynamicRaster( const size_t & index );
 	const DynamicRaster & getDynamicRaster( const size_t & index ) const;
-	DynamicRaster & getDynamicRaster( const std::string & key );
-	const DynamicRaster & getDynamicRaster( const std::string & key ) const;
+	DynamicRaster & getDynamicRaster( const std::string & key ) 
+		{ return getDynamicRaster(rasterIndexForKey(key));}
+	const DynamicRaster & getDynamicRaster( const std::string & key ) const 
+		{ return getDynamicRaster(rasterIndexForKey(key));}
 
 	//! returns static raster identified by parameter 'key'.
 	StaticRaster & getStaticRaster( const size_t & index );
-	StaticRaster & getStaticRaster( const std::string & key );
+	StaticRaster & getStaticRaster( const std::string & key )
+		{ return getStaticRaster(rasterIndexForKey(key));}
 
 	//! create a new static raster map with the stablished size and given key
 	void registerStaticRaster( const std::string & key, const bool & serialize, int index = -1);
@@ -152,7 +157,7 @@ public:
 	virtual void createAgents(){};
 	//! to be redefined for subclasses
 	virtual void createRasters(){};
-    const Config & getConfig() const { return *_config; }
+	const Config & getConfig() const { return *_config; }
 
 	int	getCurrentTimeStep() const { return _step; }
 	//! time from initialization step to the moment the method is executed
@@ -184,6 +189,8 @@ public:
 
 	bool rasterToSerialize( size_t index ) { return _serializeRasters.at(index); }
 	bool isRasterDynamic( size_t index ) { return _dynamicRasters.at(index); }
+	bool isRasterDynamic( const std::string & key ) { return isRasterDynamic(rasterIndexForKey(key)); }
+
 	bool rasterExists( size_t index )
 	{
 		if(_rasters.at(index))

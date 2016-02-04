@@ -264,6 +264,19 @@ bool World::checkPosition( const Point2D<int> & newPosition ) const
 	return true;
 }
 
+
+const size_t World::rasterIndexForKey( const std::string & key ) const
+{
+	RasterNameMap::const_iterator it = _rasterNames.find(key);
+	if(it==_rasterNames.end())
+	{
+		std::stringstream oss;
+		oss << "World::rasterIndexForKey - raster: " << key << " not registered";
+		throw Exception(oss.str());
+	}
+	return it->second;
+}
+
 StaticRaster & World::getStaticRaster( const size_t & index )
 {
     if(index>=_rasters.size())
@@ -275,18 +288,6 @@ StaticRaster & World::getStaticRaster( const size_t & index )
 	return *(_rasters.at(index));
 }
 
-StaticRaster & World::getStaticRaster( const std::string & key )
-{
-	RasterNameMap::const_iterator it = _rasterNames.find(key);
-	if(it==_rasterNames.end())
-	{
-		std::stringstream oss;
-		oss << "World::getStaticRaster - raster: " << key << " not registered";
-		throw Exception(oss.str());
-	}
-	return getStaticRaster(it->second);
-}
-
 const DynamicRaster & World::getDynamicRaster( const size_t & index) const
 {
 	if(index>=_rasters.size())
@@ -295,29 +296,18 @@ const DynamicRaster & World::getDynamicRaster( const size_t & index) const
 		oss << "World::getDynamicRaster - index: " << index << " out of bound with size: " << _rasters.size();
 		throw Exception(oss.str());
 	}
+	if(!_dynamicRasters.at(index)) 
+	{
+		std::stringstream oss;
+		oss << "World::getDynamicRaster - raster with index: " << index << " is static";
+		throw Exception(oss.str());
+	}
 	return (DynamicRaster &)*(_rasters.at(index));
 }
 
 DynamicRaster & World::getDynamicRaster( const size_t & index) {
 	// @see http://stackoverflow.com/a/123995
 	return const_cast<DynamicRaster &>( static_cast<const World&>( *this ).getDynamicRaster(index) );
-}
-
-const DynamicRaster & World::getDynamicRaster( const std::string & key ) const
-{	
-	RasterNameMap::const_iterator it = _rasterNames.find(key);
-	if(it==_rasterNames.end())
-	{
-		std::stringstream oss;
-		oss << "World::getDynamicRaster - raster: " << key << " not registered";
-		throw Exception(oss.str());
-	}
-	return getDynamicRaster(it->second);
-}
-
-DynamicRaster & World::getDynamicRaster( const std::string & key ) {
-	// @see http://stackoverflow.com/a/123995
-	return const_cast<DynamicRaster &>( static_cast<const World&>( *this ).getDynamicRaster(key) );
 }
 
 void World::setValue( const std::string & key, const Point2D<int> & position, int value )
